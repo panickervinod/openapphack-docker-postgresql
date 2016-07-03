@@ -1,0 +1,15 @@
+machine:
+  services:
+    - docker
+dependencies:
+  cache_directories:
+    - "~/openapphack-docker-postgresql"
+  override:
+    - docker info
+    - if [[ -e ~/openapphack-docker-postgresql/image.tar ]]; then docker load --input ~/openapphack-docker-postgresql/image.tar; fi
+    - docker build -t openapphack/postgresql .
+    - mkdir -p ~/openapphack-docker-postgresql; docker save --output ~/openapphack-docker-postgresql/image.tar openapphack/postgresql
+test:
+  override:
+    - docker run -d --name=postgresql openapphack/postgresql; sleep 10
+    - docker run -it --volumes-from=postgresql openapphack/postgresql sudo -u postgres -H psql -c "\conninfo"
